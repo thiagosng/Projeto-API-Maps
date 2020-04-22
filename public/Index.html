@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geocoding Service</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="floating-panel">
+      <input id="address" type="textbox" value="Sydney, NSW">
+      <input id="submit" type="button" value="Geocode">
+    </div>
+    <div id="map"></div>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script> 
+   
+    <script>
+
+      // Inicialização do mapa
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 8,
+          center: {lat: -34.397, lng: 150.644}
+        });
+        // Localização do usuário
+        if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          var pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          map.setCenter(pos);
+          var marker = new google.maps.Marker({
+            map: map,
+            position: pos
+          });
+        }, function (error) {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              x.innerHTML = "Usuário rejeitou a solicitação de Geolocalização."
+              break;
+            case error.POSITION_UNAVAILABLE:
+              x.innerHTML = "Localização indisponível."
+              break;
+            case error.TIMEOUT:
+              x.innerHTML = "O tempo da requisição expirou."
+              break;
+            case error.UNKNOWN_ERROR:
+              x.innerHTML = "Algum erro desconhecido aconteceu."
+              break;
+          }
+        });
+      } else {
+        alert('Não suportado');
+      }
+        var geocoder = new google.maps.Geocoder();
+
+        document.getElementById('submit').addEventListener('click', function() {
+          geocodeAddress(geocoder, map);
+
+          
+        });
+      }
+
+      function geocodeAddress(geocoder, resultsMap) {
+        
+        const socket = io('http://localhost:3000');
+        socket.on('marker',data => {
+          const marker = new map.Marker(data);
+          map.addObject(marker);
+          socket.emit('marker',position);
+        });
+        var address = document.getElementById('address').value;
+        geocoder.geocode({'address': address}, function(results, status) {
+          
+          if (status === 'OK') {
+            resultsMap.setCenter(results[0].geometry.location);
+            var marker = new google.maps.Marker({
+              map: resultsMap,
+              position: results[0].geometry.location
+              
+            });
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAg58cTVewFnBqNdEEk9-sIXLXsk6S7n60&callback=initMap">
+    </script>
+  </body>
+</html>
