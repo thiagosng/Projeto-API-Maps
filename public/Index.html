@@ -37,11 +37,12 @@
       <input id="submit" type="button" value="Geocode">
     </div>
     <div id="map"></div>
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script> 
+    <script src="/socket.io/socket.io.js"></script>
    
     <script>
 
-      // Inicialização do mapa
+    const socket = io.connect('http://localhost:3000'); 
+     
       function initMap() {
         var map = new google.maps.Map(document.getElementById('map'), {
           zoom: 8,
@@ -78,25 +79,25 @@
       } else {
         alert('Não suportado');
       }
-        var geocoder = new google.maps.Geocoder();
+      var geocoder = new google.maps.Geocoder();
+      socket.on('addR', data =>{
+      
+      console.log(data);
+      geocodeAddress(geocoder, map, data);
+      });
 
-        document.getElementById('submit').addEventListener('click', function() {
-          geocodeAddress(geocoder, map);
-
-          
-        });
-      }
-
-      function geocodeAddress(geocoder, resultsMap) {
+        document.getElementById('submit').addEventListener('click', function() {   
+        adress = document.getElementById('address').value   
+        console.log(adress)   
+        socket.emit('sendAdress', adress); 
+      });
+     
+     }
+      
+      
+      function geocodeAddress(geocoder, resultsMap, data) {
         
-        const socket = io('http://localhost:3000');
-        socket.on('marker',data => {
-          const marker = new map.Marker(data);
-          map.addObject(marker);
-          socket.emit('marker',position);
-        });
-        var address = document.getElementById('address').value;
-        geocoder.geocode({'address': address}, function(results, status) {
+        geocoder.geocode({'address': data}, function(results, status) {
           
           if (status === 'OK') {
             resultsMap.setCenter(results[0].geometry.location);

@@ -14,14 +14,14 @@ app.set('view engine', 'html'); // html definida como a view engine
 io.on('connection',socket => { // Conexão do websocket
     console.log(`Socket conectado: ${socket.id}`);
 
-    socket.on('marker', data =>{
-            markers.push(data);
-            io.emit('marker',data);
+    socket.on('sendAdress', data =>{
             console.log(data);
+            io.emit('addR', data);
+
     });
 });
 
-app.use('/', (req, res)=>{ // Quando for acessado o endereço do servidor padrão, ele vai renderizar a view 'index.html'
+app.get('/', (req, res)=>{ // Quando for acessado o endereço do servidor padrão, ele vai renderizar a view 'index.html'
     res.render('index.html');
 });
 
